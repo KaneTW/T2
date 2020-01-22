@@ -1069,8 +1069,14 @@ let private exportSafetyTerminationProof exportInfo scc removedTransitions (cp, 
         let hasDisabledLocation = locToInvariants.Values |> Seq.exists ((=) [[Formula.formula.False]])
         let hasRemainingIncomingCPEdge =
             let cpEntryLoc = exportInfo.progCoopInstrumented.GetLabelledLocation (CutpointDummyEntryLocation (string cp))
-            let cpEntryTrans = exportInfo.progCoopInstrumented.TransitionsFrom cpEntryLoc |> List.head |> fst
-            not <| Set.contains cpEntryTrans removedTransitions
+            let cpEntryTransitions = exportInfo.progCoopInstrumented.TransitionsFrom cpEntryLoc
+            
+            if not <| List.isEmpty cpEntryTransitions then
+                let cpEntryTrans = cpEntryTransitions |> List.head |> fst
+                not <| Set.contains cpEntryTrans removedTransitions
+            else
+                false
+
         if hasDisabledLocation && hasRemainingIncomingCPEdge then
             exportNewImpactInvariantsProof exportInfo (
              fun scc removed cp -> exportFinalProof exportInfo true scc cp removed)
